@@ -85,7 +85,7 @@ async function verifyOtpForLead(leadId, otpInput) {
     return {
       success: false,
       reason: "INVALID_OTP",
-      message: "Incorrect OTP entered. Please check backend log and try again."
+      message: "Incorrect OTP entered."
     };
   }
 
