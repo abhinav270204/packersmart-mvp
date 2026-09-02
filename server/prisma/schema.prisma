@@ -1,0 +1,86 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum LeadStatus {
+  PENDING
+  VERIFIED
+  FAKE
+  DUPLICATE
+  RE_ATTEMPT
+}
+
+enum LeadQuality {
+  HOT
+  WARM
+  COLD
+}
+
+enum CompanyStatus {
+  ACTIVE
+  INACTIVE
+}
+
+model Lead {
+  id                     Int                @id @default(autoincrement())
+  customerName           String
+  mobile                 String
+  email                  String
+  pickupCity             String
+  destinationCity        String
+  serviceType            String
+  movingDate             DateTime
+  additionalRequirements String?
+  status                 LeadStatus         @default(PENDING)
+  leadScore              Int                @default(0)
+  leadQuality            LeadQuality?
+  createdAt              DateTime           @default(now())
+
+  otpVerifications       OtpVerification[]
+  companyMatches         LeadCompanyMatch[]
+}
+
+model OtpVerification {
+  id         Int       @id @default(autoincrement())
+  leadId     Int
+  otp        String
+  expiresAt  DateTime
+  verifiedAt DateTime?
+  createdAt  DateTime  @default(now())
+
+  lead Lead @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  @@index([leadId])
+}
+
+model Company {
+  id           Int                @id @default(autoincrement())
+  companyName  String
+  coverage     String[]
+  serviceTypes String[]
+  rating       Float
+  status       CompanyStatus      @default(ACTIVE)
+  createdAt    DateTime           @default(now())
+
+  leadMatches LeadCompanyMatch[]
+}
+
+model LeadCompanyMatch {
+  id                 Int       @id @default(autoincrement())
+  leadId             Int
+  companyId          Int
+  matchScore         Int
+  notificationStatus String    @default("PENDING")
+  createdAt          DateTime  @default(now())
+
+  lead    Lead    @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@unique([leadId, companyId])
+  @@index([leadId])
+  @@index([companyId])
+}
